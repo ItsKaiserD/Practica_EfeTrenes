@@ -1,0 +1,46 @@
+# Entorno virtual de Python
+.venv/
+env/
+venv/
+
+# Cachés de Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Configuración de editor
+.vscode/
+.idea/
+*.code-workspace
+
+# Archivos de entorno / secretos
+.env
+.env.*
+*.key
+*.pem
+
+# Archivos de datos locales (no productivos)
+data/
+*.db
+*.sqlite
+*.parquet
+*.csv
+*.json
+
+# Logs
+logs/
+*.log
+
+# Cosas de sistema
+.DS_Store
+Thumbs.db
+
+# dbt (cuando lo usemos)
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/
+
+# Airflow (cuando lo usemos)
+airflow/logs/
+airflow/airflow.db
