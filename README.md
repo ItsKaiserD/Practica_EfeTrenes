@@ -33,5 +33,4 @@ Este documento describe la arquitectura objetivo alineada a **Sprint 1 (04–23 
 ---
 
 ## Archivos
-- `architecture.mmd` – Diagrama Mermaid para reusar en documentación.
 - Este `README` – explicación destinada al repositorio de documentación.
