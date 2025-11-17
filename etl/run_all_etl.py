@@ -11,6 +11,7 @@ SCRIPTS = [
     "etl/internal/ingesta_viajes_validados.py",
     "etl/internal/ingesta_densidad.py",
     "etl/internal/ingesta_temperatura.py",
+    "etl/external/ingesta_externa.py",
 ]
 
 # Carpeta y archivo de log
