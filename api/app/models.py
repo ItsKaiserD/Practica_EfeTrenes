@@ -1,5 +1,7 @@
-from pydantic import BaseModel, Field
 from datetime import date
+from typing import Optional
+
+from pydantic import BaseModel, Field
 
 class Indicador(BaseModel):
     fecha: date
@@ -8,3 +10,4 @@ class Indicador(BaseModel):
     tipo_indicador: str
     valor: float
     fuente: str
+    tramo_id: Optional[str] = Field(default=None, min_length=1)

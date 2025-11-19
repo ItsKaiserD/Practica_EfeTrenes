@@ -26,6 +26,7 @@ def row_to_indicador(row: dict) -> dict:
         "fecha": row["fecha"],                  # "2025-11-01"
         "filial_code": row["filial_code"],      # "VA"
         "servicio_code": row["servicio_code"],  # "01"
+        "tramo_id": row.get("tramo_id"),        # "TRAMO_01"
         "tipo_indicador": "temperatura",
         "valor": float(row["temperatura"]),
         "fuente": "interno_temperatura",

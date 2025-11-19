@@ -1,18 +1,18 @@
-from fastapi import FastAPI
 from datetime import datetime
 import json
-import os
+import logging
 import subprocess
 import sys
 from pathlib import Path
-import logging
+
+from fastapi import FastAPI
 from fastapi.background import BackgroundTasks
 
 from .models import Indicador
 
 app = FastAPI(title="MCP API - Practica EFE Trenes")
 
-RAW_PATH = "data/raw"
+RAW_PATH = Path("data/raw")
 
 # Ruta base del proyecto (carpeta raíz, por encima de api/)
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -39,21 +39,25 @@ def _run_all_etl_job():
     )
 
 def save_raw_file(indicador: Indicador):
-    # indicador.fecha ya es un `date`
-    fecha = indicador.fecha
+    """Persistir cada payload en rutas particionadas por fuente/tipo/fecha."""
 
-    # Carpeta por fecha
-    folder = os.path.join(
-        RAW_PATH,
-        str(fecha.year),
-        str(fecha.month),
-        str(fecha.day),
+    fecha = indicador.fecha  # indicador.fecha ya es un `date`
+    fuente = indicador.fuente or "desconocido"
+    tipo = indicador.tipo_indicador or "sin_tipo"
+
+    folder = (
+        RAW_PATH
+        / fuente
+        / tipo
+        / f"YYYY={fecha.year}"
+        / f"MM={fecha.month:02d}"
+        / f"DD={fecha.day:02d}"
     )
-    os.makedirs(folder, exist_ok=True)
+    folder.mkdir(parents=True, exist_ok=True)
 
     # Nombre del archivo con timestamp
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
-    filename = os.path.join(folder, f"indicadores_{timestamp}.json")
+    filename = folder / f"indicadores_{timestamp}.json"
 
     # Convertimos el modelo a dict y pasamos fecha a string
     payload = indicador.model_dump()  # en Pydantic v2 (también sirve .dict())
@@ -97,4 +101,3 @@ def trigger_run_all_etl(background_tasks: BackgroundTasks):
         "detail": "El ETL HU1 + HU2 se está ejecutando en segundo plano.",
         "script": str(RUN_ALL_ETL_SCRIPT),
     }
-
