@@ -81,7 +81,7 @@ def process_csv(path: Path):
                     logger.info(
                         f"[OK] Fila {idx}: fecha={payload['fecha']} "
                         f"filial={payload['filial_code']} servicio={payload['servicio_code']} "
-                        f"densidad={payload['valor']}"
+                        f"temperatura={payload['valor']}"
                     )
                     break  # éxito, dejamos de reintentar
 
@@ -106,4 +106,4 @@ if __name__ == "__main__":
     logger = logging.getLogger(__name__)
     logger.info(f"Procesando archivo de temperatura: {CSV_PATH}")
     process_csv(CSV_PATH)
-    logger.info("Proceso densidad completado.")
+    logger.info("Proceso temperatura completado.")

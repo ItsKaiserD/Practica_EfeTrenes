@@ -55,10 +55,10 @@ def run_script(relative_path: str):
 
 
 def main():
-    log("===== INICIO ETL DIARIO MCP (HU1) =====")
+    log("===== INICIO ETL DIARIO MCP =====")
     for script in SCRIPTS:
         run_script(script)
-    log("===== FIN ETL DIARIO MCP (HU1) =====")
+    log("===== FIN ETL DIARIO MCP =====")
 
 
 if __name__ == "__main__":
