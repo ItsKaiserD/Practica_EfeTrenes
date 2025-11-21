@@ -12,7 +12,7 @@ SCRIPTS = [
     "etl/internal/ingesta_densidad.py",
     "etl/internal/ingesta_temperatura.py",
     "etl/external/ingesta_externa.py",
-    "etl/calc_mcp_indicadores.py",
+    "etl/calculo_mcp_indicadores.py",
 ]
 
 # Carpeta y archivo de log

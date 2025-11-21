@@ -34,3 +34,17 @@ Este documento describe la arquitectura objetivo alineada a **Sprint 1 (04–23 
 
 ## Archivos
 - Este `README` – explicación destinada al repositorio de documentación.
+- `etl/run_all_etl.py` – orquesta las ingestas internas, externas y el cálculo MCP.
+- `etl/calculo_mcp_indicadores.py` – genera indicadores MCP validados + historial de runs.
+- `ops/programador_semanal.py` – scheduler simple para ejecutar el pipeline cada lunes (por defecto 05:00); usa `python3 ops/programador_semanal.py --run-now` para forzar una corrida manual.
+
+## Actualización semanal
+
+Para cumplir la HU de refresco los lunes:
+
+```bash
+python3 ops/programador_semanal.py            # queda en bucle, corre cada lunes 05:00
+python3 ops/programador_semanal.py --run-now  # ejecuta una sola vez y sale
+```
+
+Puedes cambiar día/hora con `--weekday 2 --time 04:30`. El scheduler deja logs en `logs/programador_semanal.log` y reutiliza `etl/run_all_etl.py`, que ya dispara el cálculo MCP y registra cada ejecución.
