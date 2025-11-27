@@ -12,6 +12,7 @@ from __future__ import annotations
 import csv
 import json
 import logging
+import shutil  # nuevo import
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
@@ -41,6 +42,18 @@ RUN_HISTORY_FIELDS = [
     "status_otro",
     "log_file",
     "resultado_csv",
+]
+
+# Catálogo de versiones de datasets (HU5)
+METADATA_DIR = Path("data/metadata")
+VERSION_CATALOG = METADATA_DIR / "dataset_versions.csv"
+
+VERSION_CATALOG_FIELDS = [
+    "dataset",
+    "version_id",
+    "created_at",
+    "file_path",
+    "is_current",
 ]
 
 REFERENCE_TOLERANCE = 1e-6
@@ -224,6 +237,75 @@ def attach_reference(indicator_id: str, rows: List[dict]) -> None:
                 "ok" if abs(delta) <= REFERENCE_TOLERANCE else "desvio"
             )
 
+def register_dataset_version(dataset: str, file_path: Path, mark_current: bool = True) -> None:
+    """
+    HU5: registra una nueva versión de un dataset en el catálogo de versiones
+    y opcionalmente actualiza el archivo 'current'.
+
+    - dataset: nombre lógico del dataset (ej: 'mcp_indicadores')
+    - file_path: ruta al CSV generado (con timestamp)
+    """
+    METADATA_DIR.mkdir(parents=True, exist_ok=True)
+
+    version_id = datetime.now().strftime("%Y%m%d_%H%M%S")
+    created_at = datetime.now().isoformat(timespec="seconds")
+
+    is_new = not VERSION_CATALOG.exists()
+    with VERSION_CATALOG.open("a", newline="", encoding="utf-8") as fh:
+        writer = csv.DictWriter(fh, fieldnames=VERSION_CATALOG_FIELDS)
+        if is_new:
+            writer.writeheader()
+
+        row = {
+            "dataset": dataset,
+            "version_id": version_id,
+            "created_at": created_at,
+            "file_path": str(file_path),
+            "is_current": "true" if mark_current else "false",
+        }
+        writer.writerow(row)
+
+    if mark_current:
+        # Copiamos la versión como "current"
+        current_file = OUTPUT_DIR / f"{dataset}_current.csv"
+        shutil.copy2(file_path, current_file)
+        logging.info("Versión %s registrada como actual en %s", version_id, current_file)
+
+def rollback_dataset_version(dataset: str, version_id: str) -> Path:
+    """
+    HU5: permite revertir a una versión anterior de un dataset.
+
+    - Busca en dataset_versions.csv la fila que coincide con dataset + version_id
+    - Copia ese archivo como <dataset>_current.csv en la carpeta SILVER
+    """
+    if not VERSION_CATALOG.exists():
+        raise FileNotFoundError(f"No existe catálogo de versiones: {VERSION_CATALOG}")
+
+    selected_row = None
+    with VERSION_CATALOG.open(encoding="utf-8") as fh:
+        reader = csv.DictReader(fh)
+        for row in reader:
+            if row["dataset"] == dataset and row["version_id"] == version_id:
+                selected_row = row
+                break
+
+    if not selected_row:
+        raise ValueError(f"No se encontró versión {version_id} para dataset {dataset}")
+
+    src = Path(selected_row["file_path"])
+    if not src.exists():
+        raise FileNotFoundError(f"No existe el archivo de la versión: {src}")
+
+    dst = OUTPUT_DIR / f"{dataset}_current.csv"
+    shutil.copy2(src, dst)
+    logging.info(
+        "Rollback realizado: dataset=%s version_id=%s -> %s",
+        dataset,
+        version_id,
+        dst,
+    )
+    return dst
+
 
 def write_results(rows: List[dict]) -> Path:
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -248,6 +330,8 @@ def write_results(rows: List[dict]) -> Path:
             writer.writerow(row)
 
     logging.info("Resultados escritos en %s (%s filas)", out_file, len(rows))
+    # 👇 NUEVO: registrar versión en catálogo (HU5)
+    register_dataset_version("mcp_indicadores", out_file, mark_current=True)
     return out_file
 
 
